@@ -49,12 +49,12 @@ from scipy.stats import uniform
 from train_model import train_xgb
 from feat_extract import get_feats
 
-def get_preds(main_path="",infile="data/test.mfa",model="",outfile_preds="preds_mod_v1.csv"):
+def get_preds(main_path="",infile="data/test.mfa",model="",outfile_preds="preds_mod_v2.csv"):
     data_df = get_feats(infile_name=os.path.join(main_path,infile))
     # TODO if we do not define the class, exclude it as a feature
     data_df.pop("class")
     mod = pickle.load(open(os.path.join(main_path,model),"rb"))
-    prob_pos = pd.Series(mod.predict_proba(data_df)[:,1],index=data_df.index)
+    prob_pos = pd.Series(mod.predict_proba(data_df)[:,1],index=data_df.index,name="predictions")
     prob_pos.to_csv(outfile_preds)
 
 def train_all_instances(main_path="",
@@ -64,8 +64,8 @@ def train_all_instances(main_path="",
                         output_file_mod="mods/model.pickle"):
     random.seed(random_seed)
     
-    data_df_one = get_feats(infile_name=input_enriched,assign_class=1)
-    data_df_zero = get_feats(infile_name=input_depleted,assign_class=0)
+    data_df_one = get_feats(infile_name=os.path.join(main_path,input_enriched),assign_class=1)
+    data_df_zero = get_feats(infile_name=os.path.join(main_path,input_depleted),assign_class=0)
     
     data_df = []
     data_df.append(data_df_one)
@@ -77,7 +77,7 @@ def train_all_instances(main_path="",
     train_xgb(data_df,y,outfile=output_file_mod)
 
 if __name__ == "__main__":
-    main_path="C:/Users/asus/Dropbox/D012554/"
+    main_path="C:/Users/asus/Documents/GitHub/prot_loc"
     output_file_mod="mods/model.pickle"
     train_all_instances(main_path=main_path,input_depleted="data/zero.mfa",input_enriched="data/one.mfa",random_seed=42,output_file_mod=output_file_mod)
     get_preds(main_path=main_path,infile="data/test.mfa",model=output_file_mod)

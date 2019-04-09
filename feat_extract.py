@@ -94,7 +94,6 @@ def get_feats(main_path="",
     return ret_df
 
 def count_substring(string,sub_string):
-    l=len(sub_string)
     count=0
     for i in range(len(string)-len(sub_string)+1):
         if(string[i:i+len(sub_string)] == sub_string ):      
@@ -260,7 +259,7 @@ def get_feats_simple_seq(seq,libs_prop):
         new_instance[name] = apply_prop_lib(seq,lib)
     return(new_instance)
 
-def get_feats_simple(seqs,libs_prop,assign_class=1,nmer_feature="data/nmer_features.txt"):
+def get_feats_simple(seqs,libs_prop,assign_class=1,nmer_feature="data/nmer_features.txt",add_rolling_feat=True):
     nmers = map(str.strip,open(nmer_feature).readlines())
 
     data_df = {}
@@ -269,10 +268,24 @@ def get_feats_simple(seqs,libs_prop,assign_class=1,nmer_feature="data/nmer_featu
         new_instance = {}
         for name,lib in libs_prop.items():
             new_instance[name] = apply_prop_lib(seq,lib)
+            feature_seqs = [lib[aa] for aa in seq if aa in lib.keys()]
+            if add_rolling_feat:
+                feature_seqs = pd.Series(feature_seqs)
+                new_instance["mean_two_%s" % (name)] = feature_seqs.rolling(2).sum().mean()
+                new_instance["mean_three_%s" % (name)] = feature_seqs.rolling(3).sum().mean()
+                new_instance["mean_three_%s" % (name)] = feature_seqs.rolling(4).sum().mean()
+                
+                new_instance["max_four_%s" % (name)] = feature_seqs.rolling(4).sum().max()
+                new_instance["max_three_%s" % (name)] = feature_seqs.rolling(3).sum().max()
+                new_instance["max_two_%s" % (name)] = feature_seqs.rolling(2).sum().max()
+                
+                new_instance["min_four_%s" % (name)] = feature_seqs.rolling(4).sum().min()
+                new_instance["min_three_%s" % (name)] = feature_seqs.rolling(3).sum().min()
+                new_instance["min_two_%s" % (name)] = feature_seqs.rolling(2).sum().min()
         new_instance["class"] = assign_class
         
         for nmer in nmers:
             new_instance["countnmer|"+nmer] = count_substring(seq,nmer)
-        
+
         data_df[ident] = new_instance
     return data_df

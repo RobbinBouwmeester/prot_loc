@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from collections import Counter
 import sys
+from matplotlib import pyplot as plt
 
 three_to_one = {
         "ala" : "A",
@@ -259,6 +260,18 @@ def get_feats_simple_seq(seq,libs_prop):
         new_instance[name] = apply_prop_lib(seq,lib)
     return(new_instance)
 
+def extract_rolling_features(seq,lib,lib_name="feat",num_aas=[2,4,8,16,20,25],percentiles=[0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.95]):
+    ret_dict = {}
+
+    feature_seqs = pd.Series([lib[aa] for aa in seq if aa in lib.keys()])
+    
+    for naa in num_aas:
+        seq_feat = feature_seqs.rolling(naa).sum()
+        perc_feat = dict([("percentile_%s_%s_%s" % (naa,p,lib_name),seq_feat.quantile(p)) for p in percentiles])
+        ret_dict.update(perc_feat)
+        
+    return(ret_dict)
+
 def get_feats_simple(seqs,libs_prop,assign_class=1,nmer_feature="data/nmer_features.txt",add_rolling_feat=True):
     nmers = map(str.strip,open(nmer_feature).readlines())
 
@@ -268,20 +281,9 @@ def get_feats_simple(seqs,libs_prop,assign_class=1,nmer_feature="data/nmer_featu
         new_instance = {}
         for name,lib in libs_prop.items():
             new_instance[name] = apply_prop_lib(seq,lib)
-            feature_seqs = [lib[aa] for aa in seq if aa in lib.keys()]
+            
             if add_rolling_feat:
-                feature_seqs = pd.Series(feature_seqs)
-                new_instance["mean_two_%s" % (name)] = feature_seqs.rolling(2).sum().mean()
-                new_instance["mean_three_%s" % (name)] = feature_seqs.rolling(3).sum().mean()
-                new_instance["mean_three_%s" % (name)] = feature_seqs.rolling(4).sum().mean()
-                
-                new_instance["max_four_%s" % (name)] = feature_seqs.rolling(4).sum().max()
-                new_instance["max_three_%s" % (name)] = feature_seqs.rolling(3).sum().max()
-                new_instance["max_two_%s" % (name)] = feature_seqs.rolling(2).sum().max()
-                
-                new_instance["min_four_%s" % (name)] = feature_seqs.rolling(4).sum().min()
-                new_instance["min_three_%s" % (name)] = feature_seqs.rolling(3).sum().min()
-                new_instance["min_two_%s" % (name)] = feature_seqs.rolling(2).sum().min()
+                new_instance.update(extract_rolling_features(seq,lib,lib_name=name))
         new_instance["class"] = assign_class
         
         for nmer in nmers:

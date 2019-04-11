@@ -78,6 +78,6 @@ def train_all_instances(main_path="",
 
 if __name__ == "__main__":
     main_path="C:/Users/asus/Documents/GitHub/prot_loc"
-    output_file_mod="mods/model.pickle"
+    output_file_mod="mods/modelV3.pickle"
     train_all_instances(main_path=main_path,input_depleted="data/zero.mfa",input_enriched="data/one.mfa",random_seed=42,output_file_mod=output_file_mod)
-    get_preds(main_path=main_path,infile="data/test.mfa",model=output_file_mod)
+    get_preds(main_path=main_path,infile="data/test.mfa",model=output_file_mod,outfile_preds="preds_mod_v3.csv")

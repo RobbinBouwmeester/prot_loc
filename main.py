@@ -96,7 +96,7 @@ def train_all_instances(main_path="",
 
 if __name__ == "__main__":
     rseed = 42
-    main_path="C:/Users/davy/Documents/GitHub/prot_loc"
+    main_path="C:/Users/asus/Documents/GitHub/prot_loc"
     output_file_mod="mods/model.pickle"
     input_zero = "data/zero_sample.mfa"
     input_one = "data/one_sample.mfa"

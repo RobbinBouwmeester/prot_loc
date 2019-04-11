@@ -14,8 +14,8 @@ def train_xgb(X,
               mod_number=1,
               cv=None,
               outfile="model.pickle",
-              n_iter_search=25,
-              nfolds=25,
+              n_iter_search=20,
+              nfolds=10,
               random_state=42):
     """
     Train an XGBoost model with hyper parameter optimization.
@@ -56,10 +56,12 @@ def train_xgb(X,
 
     mcc = make_scorer(matthews_corrcoef)
     random_search = RandomizedSearchCV(xgb_handle, param_distributions=param_dist,
-                                       n_iter=n_iter_search,verbose=10,scoring=mcc,
+                                       n_iter=n_iter_search,verbose=0,scoring=mcc,
                                        n_jobs=1,refit=True,cv=cv)
 
     random_search.fit(X, y)
 
     random_search.feats = X.columns
     pickle.dump(random_search,open(outfile,"wb"))
+
+    return(random_search.best_score_)

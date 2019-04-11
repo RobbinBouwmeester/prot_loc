@@ -57,15 +57,32 @@ def get_preds(main_path="",infile="data/test.mfa",model="",outfile_preds="preds_
     prob_pos = pd.Series(mod.predict_proba(data_df)[:,1],index=data_df.index,name="predictions")
     prob_pos.to_csv(outfile_preds)
 
+def feat_excl(X,y):
+    feat_sel = list(X.columns)
+    while len(feat_sel) > 50:
+        max_perf_feat = {}
+        for f_exclude in feat_sel:
+            temp_feats = copy.deepcopy(feat_sel)
+            temp_feats.remove(f_exclude)
+            max_perf_feat[f_exclude] = train_xgb(X[temp_feats],y,outfile=output_file_mod)
+            print(max_perf_feat[f_exclude])
+            #input()
+        
+        remove_f = max(max_perf_feat.items(), key=operator.itemgetter(1))
+        print("Going to remove: %s,%s" % (remove_f[0],remove_f[1]))
+        input()
+        feat_sel.remove(remove_f)
+
+
 def train_all_instances(main_path="",
-                        input_depleted="data/train_depleted.csv",
-                        input_enriched="data/train_enriched.csv",
+                        input_zero="data/train_depleted.csv",
+                        input_one="data/train_enriched.csv",
                         random_seed=42,
                         output_file_mod="mods/model.pickle"):
     random.seed(random_seed)
     
-    data_df_one = get_feats(infile_name=os.path.join(main_path,input_enriched),assign_class=1)
-    data_df_zero = get_feats(infile_name=os.path.join(main_path,input_depleted),assign_class=0)
+    data_df_one = get_feats(infile_name=os.path.join(main_path,input_one),assign_class=1)
+    data_df_zero = get_feats(infile_name=os.path.join(main_path,input_zero),assign_class=0)
     
     data_df = []
     data_df.append(data_df_one)
@@ -74,10 +91,16 @@ def train_all_instances(main_path="",
 
     y = data_df.pop("class")
 
-    train_xgb(data_df,y,outfile=output_file_mod)
+    feat_excl(data_df,y)
+    #train_xgb(data_df,y,outfile=output_file_mod)
 
 if __name__ == "__main__":
-    main_path="C:/Users/asus/Documents/GitHub/prot_loc"
+    rseed = 42
+    main_path="C:/Users/davy/Documents/GitHub/prot_loc"
     output_file_mod="mods/model.pickle"
-    train_all_instances(main_path=main_path,input_depleted="data/zero.mfa",input_enriched="data/one.mfa",random_seed=42,output_file_mod=output_file_mod)
-    get_preds(main_path=main_path,infile="data/test.mfa",model=output_file_mod)
+    input_zero = "data/zero_sample.mfa"
+    input_one = "data/one_sample.mfa"
+    input_test = "data/test.mfa"
+    
+    train_all_instances(main_path=main_path,input_zero=input_zero,input_one=input_one,random_seed=rseed,output_file_mod=output_file_mod)
+    get_preds(main_path=main_path,infile=input_test,model=output_file_mod)

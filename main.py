@@ -63,6 +63,7 @@ def feat_incl(X,y):
     while len(feat_sel) > 50:
         max_perf_feat = {}
         for f_exclude in feat_sel:
+            if f_exclude in feat_incl: continue 
             temp_feats = copy.deepcopy(feat_incl)
             temp_feats.append(f_exclude)
             max_perf_feat[f_exclude] = train_xgb(X[temp_feats],y,outfile=output_file_mod)
@@ -70,8 +71,8 @@ def feat_incl(X,y):
             #input()
         
         remove_f = max(max_perf_feat.items(), key=operator.itemgetter(1))
-        print("Going to include: %s,%s" % (remove_f[0],remove_f[1]))
-        feat_incl.append(remove_f)
+        print("> Going to include: %s,%s" % (remove_f[0],remove_f[1]))
+        feat_incl.append(remove_f[0])
 
 def feat_excl(X,y):
     feat_sel = list(X.columns)
@@ -114,8 +115,8 @@ if __name__ == "__main__":
     rseed = 42
     main_path="C:/Users/asus/Documents/GitHub/prot_loc"
     output_file_mod="mods/model.pickle"
-    input_zero = "data/zero_sample.mfa"
-    input_one = "data/one_sample.mfa"
+    input_zero = "data/zero.mfa"
+    input_one = "data/one.mfa"
     input_test = "data/test.mfa"
     
     train_all_instances(main_path=main_path,input_zero=input_zero,input_one=input_one,random_seed=rseed,output_file_mod=output_file_mod)

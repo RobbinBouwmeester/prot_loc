@@ -57,6 +57,22 @@ def get_preds(main_path="",infile="data/test.mfa",model="",outfile_preds="preds_
     prob_pos = pd.Series(mod.predict_proba(data_df)[:,1],index=data_df.index,name="predictions")
     prob_pos.to_csv(outfile_preds)
 
+def feat_incl(X,y):
+    feat_sel = list(X.columns)
+    feat_incl = []
+    while len(feat_sel) > 50:
+        max_perf_feat = {}
+        for f_exclude in feat_sel:
+            temp_feats = copy.deepcopy(feat_incl)
+            temp_feats.append(f_exclude)
+            max_perf_feat[f_exclude] = train_xgb(X[temp_feats],y,outfile=output_file_mod)
+            print(max_perf_feat[f_exclude])
+            #input()
+        
+        remove_f = max(max_perf_feat.items(), key=operator.itemgetter(1))
+        print("Going to include: %s,%s" % (remove_f[0],remove_f[1]))
+        feat_incl.append(remove_f)
+
 def feat_excl(X,y):
     feat_sel = list(X.columns)
     while len(feat_sel) > 50:
@@ -91,7 +107,7 @@ def train_all_instances(main_path="",
 
     y = data_df.pop("class")
 
-    feat_excl(data_df,y)
+    feat_incl(data_df,y)
     #train_xgb(data_df,y,outfile=output_file_mod)
 
 if __name__ == "__main__":

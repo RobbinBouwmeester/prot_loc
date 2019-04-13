@@ -86,7 +86,7 @@ def feat_excl(X,y):
             #input()
         
         remove_f = max(max_perf_feat.items(), key=operator.itemgetter(1))
-        print("Going to remove: %s,%s" % (remove_f[0],remove_f[1]))
+        print("> Going to remove: %s,%s" % (remove_f[0],remove_f[1]))
         input()
         feat_sel.remove(remove_f)
 
@@ -105,11 +105,11 @@ def train_all_instances(main_path="",
     data_df.append(data_df_one)
     data_df.append(data_df_zero)
     data_df = pd.concat(data_df)
-
+    data_df.to_csv("data/feature_matrix.csv")
     y = data_df.pop("class")
-
-    feat_incl(data_df,y)
-    #train_xgb(data_df,y,outfile=output_file_mod)
+    
+    #feat_incl(data_df,y)
+    train_xgb(data_df,y,outfile=output_file_mod)
 
 if __name__ == "__main__":
     rseed = 42
@@ -118,6 +118,7 @@ if __name__ == "__main__":
     input_zero = "data/zero.mfa"
     input_one = "data/one.mfa"
     input_test = "data/test.mfa"
+    outfile_preds = "preds_mod_v4.csv"
     
     train_all_instances(main_path=main_path,input_zero=input_zero,input_one=input_one,random_seed=rseed,output_file_mod=output_file_mod)
     get_preds(main_path=main_path,infile=input_test,model=output_file_mod)

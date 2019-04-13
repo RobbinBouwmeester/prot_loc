@@ -14,8 +14,8 @@ def train_xgb(X,
               mod_number=1,
               cv=None,
               outfile="model.pickle",
-              n_iter_search=10,
-              nfolds=3,
+              n_iter_search=100,
+              nfolds=20,
               random_state=42):
     """
     Train an XGBoost model with hyper parameter optimization.
@@ -42,7 +42,7 @@ def train_xgb(X,
     
     #Define distributions to sample from for hyper parameter optimization
     param_dist = {  
-        "n_estimators": st.randint(25, 50),
+        "n_estimators": st.randint(25, 150),
         "max_depth": st.randint(5, 10),
         "learning_rate": st.uniform(0.05, 0.4),
         #"colsample_bytree": one_to_left,
@@ -56,7 +56,7 @@ def train_xgb(X,
 
     mcc = make_scorer(matthews_corrcoef)
     random_search = RandomizedSearchCV(xgb_handle, param_distributions=param_dist,
-                                       n_iter=n_iter_search,verbose=0,scoring=mcc,
+                                       n_iter=n_iter_search,verbose=10,scoring="roc_auc",
                                        n_jobs=1,refit=True,cv=cv)
 
     random_search.fit(X, y)

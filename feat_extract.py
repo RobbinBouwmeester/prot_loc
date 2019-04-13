@@ -3,6 +3,7 @@ import pandas as pd
 from collections import Counter
 import sys
 from matplotlib import pyplot as plt
+import re
 
 three_to_one = {
         "ala" : "A",
@@ -272,12 +273,20 @@ def extract_rolling_features(seq,lib,lib_name="feat",num_aas=[2,4,8,16,20,25],pe
         
     return(ret_dict)
 
-def get_feats_simple(seqs,libs_prop,assign_class=1,nmer_feature="data/nmer_features.txt",add_rolling_feat=True):
+def get_feats_simple(seqs,
+                     libs_prop,
+                     assign_class=1,
+                     nmer_feature="data/nmer_features.txt",
+                     add_rolling_feat=True,
+                     prosite_lib="data/prosite.csv"):
     nmers = map(str.strip,open(nmer_feature).readlines())
-
+    prosite = dict([l.rstrip().split("\t") for l in open(prosite_lib).readlines()])
     data_df = {}
-
+    counter = 0
     for ident,seq in seqs.items():
+        counter += 1
+        print(counter)
+
         new_instance = {}
         for name,lib in libs_prop.items():
             new_instance[name] = apply_prop_lib(seq,lib)
@@ -286,8 +295,11 @@ def get_feats_simple(seqs,libs_prop,assign_class=1,nmer_feature="data/nmer_featu
                 new_instance.update(extract_rolling_features(seq,lib,lib_name=name))
         new_instance["class"] = assign_class
         
-        for nmer in nmers:
-            new_instance["countnmer|"+nmer] = count_substring(seq,nmer)
+        for motif_name,motif in prosite.items():
+            new_instance[motif_name] = len(re.findall(motif,seq))
+
+        #for nmer in nmers:
+        #    new_instance["countnmer|"+nmer] = count_substring(seq,nmer)
 
         data_df[ident] = new_instance
     return data_df
